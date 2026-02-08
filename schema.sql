@@ -1,5 +1,5 @@
 -- ============================================================
--- My Money MCP — Supabase Schema
+-- My Money MCP OS — Supabase Schema
 -- Run this in your Supabase SQL Editor (https://supabase.com/dashboard)
 -- ============================================================
 
