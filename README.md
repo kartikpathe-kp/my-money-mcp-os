@@ -1,54 +1,84 @@
-# My Money MCP
+# My Money MCP OS
 
-Track expenses, manage budgets, and sync Splitwise — all through conversation with Claude.
+An MCP server that turns Claude into your personal finance manager. Track expenses, manage budgets, sync Splitwise — all through conversation.
 
-## What is this?
+No app. No forms. Just talk.
 
-[MCP (Model Context Protocol)](https://modelcontextprotocol.io) lets Claude connect to external tools and data sources. This server gives Claude the ability to manage your personal finances — recording transactions, checking budgets, viewing account balances, and even syncing with Splitwise — all through natural conversation.
+---
 
-Instead of opening a spreadsheet or an app, you just talk:
+### The problem
+
+I've tracked my finances for 2 years. Notebook + app, every transaction logged twice. It worked, but it was exhausting — and the system couldn't answer the one question that actually matters:
+
+> *"Can I afford this?"*
+
+To answer that, I'd have to export data, build a spreadsheet, calculate burn rate... basically do an MBA assignment on my own life. Every expense app I tried (and I tried many) had the same flaw: they're great at recording, terrible at thinking.
+
+### The fix
+
+This MCP server connects Claude to a Supabase database. Now instead of tapping through forms, I just talk:
 
 ```
-You:    Spent 500 on dinner last night, HDFC card
-Claude: Recorded ₹500 expense in Food & Dining using HDFC Credit Card.
-        Budget status: ₹3,200/₹5,000 used (64%) this month.
+Me:     spent 340 on uber, hdfc card
+Claude: Recorded ₹340 expense in Transport using HDFC Credit Card.
+        Your transport spend this month: ₹2,180 of ₹3,000 budget (73%).
 
-You:    How much did I spend on food this month?
-Claude: You've spent ₹8,450 on Food & Dining this month across 12 transactions.
-        That's ₹1,200 more than last month.
+Me:     split 2400 dinner at Bombay Canteen between me, Rohit and Sneha. I paid.
+Claude: Added to Splitwise — Rohit owes ₹800, Sneha owes ₹800.
+        Logged ₹800 as your Food expense on HDFC card.
+
+Me:     can I afford a MacBook Pro?
+Claude: Current savings: ₹1.8L. Monthly burn: ₹38K.
+        That MacBook (₹1.5L) would leave you with ~5 weeks of runway.
+        I'd suggest waiting 2 more months.
 ```
 
-## Prerequisites
+That last one hurt. But it was the most useful financial advice I've gotten — from a system running on my own data.
 
-- **Node.js 18+**
-- **Claude Pro or API access** (any plan that supports MCP)
-- **Supabase account** — [free tier](https://supabase.com) works
-- **Splitwise API keys** — optional, only needed for Splitwise features ([register here](https://secure.splitwise.com/apps))
+---
+
+## What it does
+
+**Transactions** — Add income/expenses by just saying what you spent. Supports multiple accounts (bank, credit card, cash, wallet), categories, tags, and payment methods. Edit, delete, search through history.
+
+**Budgets** — Set monthly limits per category. Claude tells you where you stand whenever you add an expense, not after the month is over.
+
+**Account balances** — Calculated automatically from all transactions. Transfer between accounts (pay credit card from bank, move to savings).
+
+**Spending analytics** — Monthly/yearly summaries by category. Compare periods ("how's this month vs last month?"). Spot patterns you'd never catch manually.
+
+**Splitwise integration** — Create shared expenses, view balances, check who owes you — without opening Splitwise. Split bills right from the conversation.
+
+**Recurring transactions** — Track upcoming bills and subscriptions. Know what's due before it hits.
+
+---
 
 ## Setup
 
-### 1. Clone the repo
+Takes about 15 minutes.
+
+### Prerequisites
+
+- **Node.js 18+**
+- **Claude Pro** (or any Claude plan that supports MCP)
+- **Supabase account** — [free tier](https://supabase.com) is more than enough
+- **Splitwise API keys** — optional, only if you want Splitwise features ([register app here](https://secure.splitwise.com/apps))
+
+### 1. Clone and configure
 
 ```bash
-git clone https://github.com/your-username/my-money-mcp.git
+git clone https://github.com/kartikpathe-kp/my-money-mcp.git
 cd my-money-mcp
-```
-
-### 2. Configure environment variables
-
-```bash
 cp .env.example .env
 ```
 
-Open `.env` and fill in your Supabase URL and anon key. You can find these in your Supabase project under **Settings > API**.
+Open `.env` and add your Supabase credentials (found in your Supabase project → Settings → API).
 
-If you want Splitwise integration, add your Splitwise API keys too.
+### 2. Set up the database
 
-### 3. Set up the database
+Open the [Supabase SQL Editor](https://supabase.com/dashboard) and run the contents of `schema.sql`. This creates all tables, views, indexes, and some default expense/income categories.
 
-Open the [Supabase SQL Editor](https://supabase.com/dashboard) for your project and run the contents of `schema.sql`. This creates all the tables, views, indexes, and default categories.
-
-### 4. Install and run
+### 3. Install and run
 
 ```bash
 npm install
@@ -56,11 +86,11 @@ npm run build
 npm start
 ```
 
-The server starts on `http://localhost:3001` by default.
+Server starts at `http://localhost:3001`. Hit `/health` to verify it's running.
 
-### 5. Connect to Claude
+### 4. Connect to Claude
 
-Add the MCP server URL to Claude. In your Claude configuration, add:
+Add this to your Claude MCP configuration:
 
 ```json
 {
@@ -72,59 +102,49 @@ Add the MCP server URL to Claude. In your Claude configuration, add:
 }
 ```
 
-## What can it do?
+Start a conversation. Try: *"Add ₹500 dinner expense on HDFC card"*
 
-**Transactions**
-- Add income and expenses with account, category, and tags
-- Transfer between accounts (e.g., pay credit card from bank)
-- Search, edit, and delete transactions
+If Claude responds with a confirmation and budget status, you're live.
 
-**Accounts & Balances**
-- Track multiple accounts (bank, credit card, cash, wallet)
-- Balances calculated automatically from transactions
+---
 
-**Budgets**
-- Set monthly budgets per category
-- Check budget status with spending vs. limit
+## Deploy to Railway (optional)
 
-**Analytics**
-- Monthly/yearly spending summaries by category
-- Compare spending between periods
+If you want to access it from anywhere (not just localhost):
 
-**Recurring Transactions**
-- Track upcoming bills and subscriptions
-- See what's due in the next N days
+1. Push your fork to GitHub
+2. Create a new project on [Railway](https://railway.app) → Deploy from GitHub
+3. Add your environment variables (`SUPABASE_URL`, `SUPABASE_KEY`, and optionally the Splitwise keys) in Railway's dashboard
+4. Note your public URL and update Claude's MCP config:
 
-**Splitwise Integration**
-- View friends, groups, and balances
-- Create, update, and delete shared expenses
-- Record debts and settle up
+```json
+{
+  "mcpServers": {
+    "my-money": {
+      "url": "https://your-app.up.railway.app/mcp"
+    }
+  }
+}
+```
 
-## Deploying to Railway
+Railway's free tier handles this comfortably.
 
-[Railway](https://railway.app) offers a free tier that works well for this server.
+---
 
-1. Push your repo to GitHub
-2. Go to [railway.app](https://railway.app) and create a new project
-3. Select **Deploy from GitHub repo** and pick your repository
-4. Add environment variables in the Railway dashboard:
-   - `SUPABASE_URL`
-   - `SUPABASE_KEY`
-   - `SPLITWISE_CONSUMER_KEY` (optional)
-   - `SPLITWISE_CONSUMER_SECRET` (optional)
-   - `SPLITWISE_ACCESS_TOKEN` (optional)
-5. Railway auto-detects the start command from `package.json`. Deploy and note your public URL.
-6. Update your Claude MCP config to use the Railway URL instead of localhost:
-   ```json
-   {
-     "mcpServers": {
-       "my-money": {
-         "url": "https://your-app.up.railway.app/mcp"
-       }
-     }
-   }
-   ```
+## Privacy
+
+Your financial data lives in YOUR Supabase database. The MCP server is just a bridge between Claude and your data — it doesn't store anything itself. Deploy it on your own infrastructure and no one else has access. Not me, not Anthropic, not Railway.
+
+---
+
+## Tech stack
+
+TypeScript, Express, Supabase, Splitwise SDK, MCP Protocol
 
 ## License
 
-MIT
+MIT — do whatever you want with it.
+
+---
+
+*Built by [Kartik Pathe](https://linkedin.com/in/kartik-pathe). I use this daily and it's the first finance tracking system I haven't abandoned in 2 years.*
