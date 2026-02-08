@@ -12,8 +12,16 @@ app.use(cors());
 app.use(express.json());
 
 // ==================== Supabase Setup ====================
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://eixgyftdoolsoobifaoj.supabase.co";
-const SUPABASE_KEY = process.env.SUPABASE_KEY || "sb_publishable_J-AgZq1M_zXtIhO3khpOOQ_wcmBV2rW";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error("❌ Missing required environment variables:");
+  if (!SUPABASE_URL) console.error("   - SUPABASE_URL is not set");
+  if (!SUPABASE_KEY) console.error("   - SUPABASE_KEY is not set");
+  console.error("\nCopy .env.example to .env and fill in your Supabase credentials.");
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
