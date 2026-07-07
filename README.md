@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/kartikpathe-kp-my-money-mcp-os-badge.png)](https://mseep.ai/app/kartikpathe-kp-my-money-mcp-os)
+
 # My Money MCP OS
 
 An MCP server that turns Claude into your personal finance manager. Track expenses, manage budgets, sync Splitwise — all through conversation.
